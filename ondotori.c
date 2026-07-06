@@ -31,7 +31,7 @@ void ConvertTrzToCsv(const char* filename) {   //main関数内で呼出。filena
     char cmdArgs[MAX_PATH * 3];
 
     // フルパスの組み立て
-    sprintf_s(trzPath, sizeof(trzPath), "%s\\%s", FTP_WATCH_DIR, filename); //従って、trzPath ="FTP_WATCH_DIR\\*.trz" == searchPath となる(109行目)
+    sprintf_s(trzPath, sizeof(trzPath), "%s\\%s", FTP_WATCH_DIR, filename); //従って、trzPath ="FTP_WATCH_DIR\\*.trz" == searchPath となる
     // 拡張子を除いたファイル名を取得してCSVのパスを作成
     char nameWithoutExt[MAX_PATH];
     strcpy_s(nameWithoutExt, sizeof(nameWithoutExt), filename); 
@@ -121,7 +121,7 @@ int main() {
             // 変化があったら、フォルダ内のファイルを探索
             WIN32_FIND_DATAA findData; //FindFirstFileA()、FindNextFileA()で検出されたデータを格納する構造体型変数の宣言
             char searchPath[MAX_PATH];
-            sprintf_s(searchPath, sizeof(searchPath), "%s\\*.trz", FTP_WATCH_DIR); //従って、searchaPath==trzPathとなる（32行目）
+            sprintf_s(searchPath, sizeof(searchPath), "%s\\*.trz", FTP_WATCH_DIR); //従って、searchaPath==trzPathとなる
             HANDLE hFind = FindFirstFileA(searchPath, &findData); //指定ファイルパスと一致するファイルを検索。正常時には同一パターンのファイル名の検索用ハンドルが返され、findDataにファイル名が格納される
             if (hFind != INVALID_HANDLE_VALUE) { //INVALID_HANDLE_VALUEはエラー時の戻り値
                 do {
