@@ -7,7 +7,7 @@
 #include <shlwapi.h> 
 
 // リンクエラーを防ぐためのライブラリ指定（Visual Studio用）
-#pragma comment(lib, "shlwapi.lib") //Shlwapi.libはWindows 7以前の環境で広く使用.Windows 8以降ではPathCch系関数が推奨される
+#pragma comment(lib, "shlwapi.lib") 
 
 // --- 【設定項目】環境に合わせて変更してください --- //ファイル名に日本語を使用する場合、コード中の文字列関連の記述（関数等）はワイド文字版(Unicode可)に変更する
 #define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\rz_data"  // FTPでtrzが届くフォルダ
