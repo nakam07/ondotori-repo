@@ -9,11 +9,15 @@
 // リンクエラーを防ぐためのライブラリ指定（Visual Studio用）
 #pragma comment(lib, "shlwapi.lib") 
 
+//実機未接続状態で行うダミーテスト用
+#define DUMMY_TEST   //今後、通常実行時との切り替えをコメントアウトで行うか数字で指定するか検討中。後者の場合は 1 の文字定数とする形に変更する
+
 // --- 【設定項目】環境に合わせて変更してください --- //ファイル名に日本語を使用する場合、コード中の文字列関連の記述（関数等）はワイド文字版(Unicode可)に変更する
 #define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\rz_data"  // FTPでtrzが届くフォルダ
 //#define SAVE_DIR     "C:\\Ondotori_CSV_Saved"           // CSVを保存したいフォルダ 
 #define SAVE_DIR     "D:\\Ondotori_CSV_Saved"           // FTPサーバー用フォルダとCSV保存用フォルダのドライブを分ける
 #define TD_GRAPH_PATH "C:\\Program Files (x86)\\T&D Graph\\TandDGraph.exe" // T&D Graphのパス
+#define DUMMY_FILE   "C:\\temp\\dummy.dummy"  //ダミーテスト用のファイル
 
 // 指定したファイルがTRZファイル（拡張子 .trz）かチェックする関数  //コード中に呼出無し(main関数内で拡張子付きで検索を実施している為不要)
 //BOOL IsTrzFile(const char* filename) { //filenameは次行の関数で使用する際には(char*)で型変換を行う(constを外す)（コンパイル時のエラー対策）
