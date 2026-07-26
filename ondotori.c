@@ -13,11 +13,12 @@
 #define DUMMY_TEST   //今後、通常実行時との切り替えをコメントアウトで行うか数字で指定するか検討中。後者の場合は 1 の文字定数とする形に変更する
 
 // --- 【設定項目】環境に合わせて変更してください --- //ファイル名に日本語を使用する場合、コード中の文字列関連の記述（関数等）はワイド文字版(Unicode可)に変更する
-#define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\rz_data"  // FTPでtrzが届くフォルダ
+#define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\trz_data"  // FTPでtrzが届くフォルダ
 //#define SAVE_DIR     "C:\\Ondotori_CSV_Saved"           // CSVを保存したいフォルダ 
 #define SAVE_DIR     "D:\\Ondotori_CSV_Saved"           // FTPサーバー用フォルダとCSV保存用フォルダのドライブを分ける
 #define TD_GRAPH_PATH "C:\\Program Files (x86)\\T&D Graph\\TandDGraph.exe" // T&D Graphのパス
 #define DUMMY_FILE   "C:\\temp\\dummy.dummy"  //ダミーテスト用のファイル
+#define MOVE_DUMMY_FILE  "C:\\inetpub\\ftproot\\trz_data\\dummy.dummy"  //ダミーテスト実行後のファイルパス（正常時）
 
 // 指定したファイルがTRZファイル（拡張子 .trz）かチェックする関数  //コード中に呼出無し(main関数内で拡張子付きで検索を実施している為不要)
 //BOOL IsTrzFile(const char* filename) { //filenameは次行の関数で使用する際には(char*)で型変換を行う(constを外す)（コンパイル時のエラー対策）
@@ -121,7 +122,17 @@ int main() {
     while (TRUE) {
         // フォルダに変化（ファイル追加など）が起きるまでプログラムを一時停止して待つ（CPU負荷0%）
         DWORD dwWaitStatus = WaitForSingleObject(hNotify, INFINITE);  //変更通知オブジェクトを同期オブジェクトと捉え、指定した状態が発生するまで待機
+
+#ifdef DUMMY_TEST
+        MoveFileA(DUMMY_FILE, MOVE_DUMMY_FILE);  //戻り値はBOOL値
+#endif
+
         if (dwWaitStatus == WAIT_OBJECT_0) { //指定したオブジェクトの状態が通知された時
+
+#ifdef DUMMY_TEST
+            printf("dummy test succeeded.\n");
+#endif
+#ifndef DUMMY_TEST
             // 変化があったら、フォルダ内のファイルを探索
             WIN32_FIND_DATAA findData; //FindFirstFileA()、FindNextFileA()で検出されたデータを格納する構造体型変数の宣言
             char searchPath[MAX_PATH];
@@ -141,6 +152,7 @@ int main() {
                     }
                 } while (FindNextFileA(hFind, &findData)); //検索ハンドルhFindを利用してsearchPathと一致するファイルを再度検索。該当ファイルが存在した場合、findDataにファイル名を格納する
                 FindClose(hFind); //検索ハンドルhFindを閉じる
+#endif
             }
 
             // 次の通知を待つためにリセット
