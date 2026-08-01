@@ -1,6 +1,7 @@
 //温度ロガー「T&D おんどとり RTR500Bシリーズ（親機：RTR500BW、子機：RTR-501BL）」を使用し温度管理を行う事を想定したコード(Gemini 出力)
 //リアルタイム監視にはクラウドを利用し、保存用の「記録データ」のみはローカルPC上（Windows11のFTPサーバー機能）に送信されるように設定し運用する事を想定
 //RTR500BWからFTP送信される「記録データ」(.trz) を監視し、コマンド（現時点では未確認）を使ってメーカー提供ソフト「T&D Graph」を操作し .csv に変換して保存フォルダへ転送するCのプログラム
+#define MINGW_HAS_SECURE_API 1  //コンパイラにMinGW-w64等を使用する場合
 #include <windows.h>    
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +11,7 @@
 #pragma comment(lib, "shlwapi.lib") 
 
 //実機未接続状態で行うダミーテスト用
-#define DUMMY_TEST   //今後、通常実行時との切り替えをコメントアウトで行うか数字で指定するか検討中。後者の場合は 1 の文字定数とする形に変更する
+#define DUMMY_TEST 0  
 
 // --- 【設定項目】環境に合わせて変更してください --- //ファイル名に日本語を使用する場合、コード中の文字列関連の記述（関数等）はワイド文字版(Unicode可)に変更する
 #define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\trz_data"  // FTPでtrzが届くフォルダ
@@ -123,43 +124,41 @@ int main() {
         // フォルダに変化（ファイル追加など）が起きるまでプログラムを一時停止して待つ（CPU負荷0%）
         DWORD dwWaitStatus = WaitForSingleObject(hNotify, INFINITE);  //変更通知オブジェクトを同期オブジェクトと捉え、指定した状態が発生するまで待機
 
-#ifdef DUMMY_TEST
-        MoveFileA(DUMMY_FILE, MOVE_DUMMY_FILE);  //戻り値はBOOL値
-#endif
-
+        if (DUMMY_TEST) {
+            MoveFileA(DUMMY_FILE, MOVE_DUMMY_FILE);  //戻り値はBOOL値
+        }
+        
         if (dwWaitStatus == WAIT_OBJECT_0) { //指定したオブジェクトの状態が通知された時
 
-#ifdef DUMMY_TEST
-            printf("dummy test succeeded.\n");
-#endif
-#ifndef DUMMY_TEST
-            // 変化があったら、フォルダ内のファイルを探索
-            WIN32_FIND_DATAA findData; //FindFirstFileA()、FindNextFileA()で検出されたデータを格納する構造体型変数の宣言
-            char searchPath[MAX_PATH];
-            sprintf_s(searchPath, sizeof(searchPath), "%s\\*.trz", FTP_WATCH_DIR); //従って、searchaPath==trzPathとなる
-            HANDLE hFind = FindFirstFileA(searchPath, &findData); //指定ファイルパスと一致するファイルを検索。正常時には同一パターンのファイル名の検索用ハンドルが返され、findDataにファイル名が格納される
-            if (hFind != INVALID_HANDLE_VALUE) { //INVALID_HANDLE_VALUEはエラー時の戻り値
-                do {
-                    // ドットディレクトリを除外
-                    if (strcmp(findData.cFileName, ".") != 0 && strcmp(findData.cFileName, "..") != 0) {  //strcmpの戻り値が0になるのは、2つの引数の値が一致する時
-                        // 連続で同じファイルを検知するのを防ぐ簡易チェック
-                        if (strcmp(lastProcessedFile, findData.cFileName) != 0) {
-                            strcpy_s(lastProcessedFile, sizeof(lastProcessedFile), findData.cFileName); //次回反復処理の準備
+           if (DUMMY_TEST) {
+               printf("dummy test succeeded.\n");
+            } else {
+                // 変化があったら、フォルダ内のファイルを探索
+                WIN32_FIND_DATAA findData; //FindFirstFileA()、FindNextFileA()で検出されたデータを格納する構造体型変数の宣言
+                char searchPath[MAX_PATH];
+                sprintf_s(searchPath, sizeof(searchPath), "%s\\*.trz", FTP_WATCH_DIR); //従って、searchaPath==trzPathとなる
+                HANDLE hFind = FindFirstFileA(searchPath, &findData); //指定ファイルパスと一致するファイルを検索。正常時には同一パターンのファイル名の検索用ハンドルが返され、findDataにファイル名が格納される
+                if (hFind != INVALID_HANDLE_VALUE) { //INVALID_HANDLE_VALUEはエラー時の戻り値
+                    do {
+                        // ドットディレクトリを除外
+                        if (strcmp(findData.cFileName, ".") != 0 && strcmp(findData.cFileName, "..") != 0) {  //strcmpの戻り値が0になるのは、2つの引数の値が一致する時
+                            // 連続で同じファイルを検知するのを防ぐ簡易チェック
+                            if (strcmp(lastProcessedFile, findData.cFileName) != 0) {
+                                strcpy_s(lastProcessedFile, sizeof(lastProcessedFile), findData.cFileName); //次回反復処理の準備
                             
-                            // 変換処理の実行
-                            ConvertTrzToCsv(findData.cFileName);  //定義済みの処理関数を呼び出す。cFileName は フルパスではなくファイル名のみが入る為、"*.trz"となる
+                                // 変換処理の実行
+                                ConvertTrzToCsv(findData.cFileName);  //定義済みの処理関数を呼び出す。cFileName は フルパスではなくファイル名のみが入る為、"*.trz"となる
+                            }
                         }
-                    }
-                } while (FindNextFileA(hFind, &findData)); //検索ハンドルhFindを利用してsearchPathと一致するファイルを再度検索。該当ファイルが存在した場合、findDataにファイル名を格納する
-                FindClose(hFind); //検索ハンドルhFindを閉じる
-#endif
-            }
+                    } while (FindNextFileA(hFind, &findData)); //検索ハンドルhFindを利用してsearchPathと一致するファイルを再度検索。該当ファイルが存在した場合、findDataにファイル名を格納する
+                    FindClose(hFind); //検索ハンドルhFindを閉じる
+                }
 
-            // 次の通知を待つためにリセット
-            FindNextChangeNotification(hNotify);
+                // 次の通知を待つためにリセット
+                FindNextChangeNotification(hNotify);
+            }
         }
     }
-    
     FindCloseChangeNotification(hNotify); //変更通知ハンドルを閉じる
     return 0;
 }
