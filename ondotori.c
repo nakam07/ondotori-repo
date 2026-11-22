@@ -1,7 +1,7 @@
 //温度ロガー「T&D おんどとり RTR500Bシリーズ（親機：RTR500BW、子機：RTR-501BL）」を使用し温度管理を行う事を想定したコード(Gemini 出力)
 //リアルタイム監視にはクラウドを利用し、保存用の「記録データ」のみはローカルPC上（Windows11のFTPサーバー機能）に送信されるように設定し運用する事を想定
 //RTR500BWからFTP送信される「記録データ」(.trz) を監視し、コマンド（現時点では未確認）を使ってメーカー提供ソフト「T&D Graph」を操作し .csv に変換して保存フォルダへ転送するCのプログラム
-#define MINGW_HAS_SECURE_API 1  //コンパイラにMinGW-w64等を使用する場合
+//#define MINGW_HAS_SECURE_API 1  //コンパイラにMinGW-w64等を使用する場合
 #include <windows.h>    
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 #pragma comment(lib, "shlwapi.lib") 
 
 //実機未接続状態で行うダミーテスト用
-#define DUMMY_TEST 0  
+#define DUMMY_TEST 1 
 
 // --- 【設定項目】環境に合わせて変更してください --- //ファイル名に日本語を使用する場合、コード中の文字列関連の記述（関数等）はワイド文字版(Unicode可)に変更する
 #define FTP_WATCH_DIR "C:\\inetpub\\ftproot\\trz_data"  // FTPでtrzが届くフォルダ
